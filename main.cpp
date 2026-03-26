@@ -20,13 +20,13 @@ int main() {
                 selectedLeague = (League)result;
                 drawTitleBar("Fetching standings...");
                 refresh();
-                teams = parseStandings(fetchUrl(buildStandingsUrl(selectedLeague)));
+                teams = parseStandings(fetchUrl(buildStandingsUrl(selectedLeague)), selectedLeague);
                 if (!teams.empty()) state = STANDINGS;
                 break;
             }
 
             case STANDINGS: {
-                int result = screenStandings(teams);
+                int result = screenStandings(teams, selectedLeague); // Pass League Index for Logo Display
                 if (result == -1) { state = LEAGUE_SELECT; break; }
                 selectedTeam = result;
                 // enrich with standing summary if not yet fetched

@@ -98,7 +98,7 @@ static double findStatDouble(const json& stats, const string& name) {
 
 // ─── Parsing ─────────────────────────────────────────────────────────────────
 
-vector<Team> parseStandings(const string& response) {
+vector<Team> parseStandings(const string& response, int leagueIndex) {
     vector<Team> teams;
     if (response.empty()) return teams;
     json root = json::parse(response, nullptr, false);
@@ -122,11 +122,20 @@ vector<Team> parseStandings(const string& response) {
             team.conf      = findStat(stats, "vsconf");
             team.lastTen   = findStat(stats, "lasttengames");
             team.pct       = findStatValue(stats, "winPercent");
-            team.ppg       = findStatValue(stats, "avgPointsFor");
-            team.oppPpg    = findStatValue(stats, "avgPointsAgainst");
             team.diff      = findStatValue(stats, "differential");
             team.streak    = findStatValue(stats, "streak");
             team.winPct    = findStatDouble(stats, "winPercent");
+            switch (leagueIndex) {
+                case 0: // NBA
+                    team.ppg       = findStatValue(stats, "avgPointsFor");      
+                    team.oppPpg    = findStatValue(stats, "avgPointsAgainst"); break;
+                case 1: // NFL
+                    team.ppg       = findStatValue(stats, "pointsFor");        
+                    team.oppPpg    = findStatValue(stats, "pointsAgainst");    break;
+                default: 
+                    team.ppg       = findStatValue(stats, "avgPointsFor");    
+                    team.oppPpg    = findStatValue(stats, "avgPointsAgainst"); break;
+            }
 
             teams.push_back(team);
         }

@@ -6,7 +6,15 @@ using namespace std;
 
 const string ASSET_DIR = "./assets/";
 
-vector<string> loadLogo(string &logoName) {
+vector<string> loadLeagueLogo(int leagueIndex) {
+    string logoName;
+
+    switch (leagueIndex) {
+        case 0: logoName   = "NBA_LOGO.txt"; break;
+        case 1: logoName   = "NFL_LOGO.txt"; break;
+        default: logoName  =             "";
+    }
+
     vector<string> logo;
 
     ifstream file(ASSET_DIR + logoName, ios::binary); // Open in binary mode to preserve escape codes

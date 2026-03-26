@@ -46,12 +46,6 @@ void drawTitleBar(const string& title) {
     attroff(COLOR_PAIR(7) | A_BOLD);
 }
 
-void drawBottomBracket(int &rows, int &displayY) {
-    attron(COLOR_PAIR(4) | A_BOLD);
-    mvprintw((rows - 2 > displayY) ? displayY : rows - 2, 1, "════════════════════════════════════════════════════════════════════════════╝");
-    attroff(COLOR_PAIR(4) | A_BOLD);
-}
-
 void drawStatusBar(const string& msg) {
     int rows = getmaxy(stdscr);
     int cols = getmaxx(stdscr);
@@ -109,7 +103,7 @@ int screenLeagueSelect() {
 // ─── Standings ────────────────────────────────────────────────────────────────
 
 // Returns selected team index, or -1 to go back
-int screenStandings(const vector<Team>& teams) {
+int screenStandings(const vector<Team>& teams, int leagueIndex) {
     int selected     = 0;
     int scrollOffset = 0;
     int n            = (int)teams.size();
@@ -124,9 +118,11 @@ int screenStandings(const vector<Team>& teams) {
     const int W_DIFF = 8;
     const int W_STRK = 4;
 
-    // Logo Setup HERE
-    string NBA_LOGO = "NBA_LOGO.txt"; // Regular version 
-    auto logo = loadLogo(NBA_LOGO);
+    // total display width: start col(1) + each field + spaces between + "| " suffix
+    const int tableWidth = W_SEED+1 + W_ABB+1 + W_NAME+1 + W_REC+1
+                             + W_PCT+1 + W_PPG+1 + W_OPP+1 + W_DIFF+1 + W_STRK+1;
+
+    auto logo = loadLeagueLogo(leagueIndex);     // Logo Setup HERE
 
     while (true) {
         clear();
@@ -154,17 +150,28 @@ int screenStandings(const vector<Team>& teams) {
             const Team& t = teams[i];
 
             // conference separator
-            if (t.conference != lastConf) { 
+            if (t.conference != lastConf) {
                 if (displayY >= rows - 1) break;
                 attron(COLOR_PAIR(4) | A_BOLD);
-                if (!TOP) { // MIDDLE 
-                    mvprintw(displayY++, 1, "%s ═════════════════════════════════════════════════════════╣ ", t.conference.c_str());
-                    attroff(COLOR_PAIR(4) | A_BOLD);
-                    printw("%s", logo[i].c_str());
-                } else {   // TOP
-                    mvprintw(displayY++, 1, "%s ═════════════════════════════════════════════════════════╗ ", t.conference.c_str());
+
+                string confLabel = t.conference + " ";
+                // each "═" is 3 bytes but 1 display col, so build fill by repeating the sequence
+                int fillLen = tableWidth - (int)confLabel.size() - 3; // MARK: EDITED HERE -3 for corner char + space
+                if (fillLen < 0) fillLen = 0;
+                string fill = "";
+                for (int j = 0; j < fillLen; j++) fill += "═";
+
+                if (TOP) {
+                    mvprintw(displayY++, 1, "%s%s╗", confLabel.c_str(), fill.c_str());
                     TOP = false;
+                } else {
+                    mvprintw(displayY, 1, "%s%s╣", confLabel.c_str(), fill.c_str());
+                    attroff(COLOR_PAIR(4) | A_BOLD);
+                    printw(" %s", logo[i].c_str());
+                    displayY++;
                 }
+
+                attroff(COLOR_PAIR(4) | A_BOLD);
                 seed     = 1;
                 lastConf = t.conference;
             }
@@ -188,28 +195,37 @@ int screenStandings(const vector<Team>& teams) {
                 W_OPP,  t.oppPpg.c_str(),
                 W_DIFF, t.diff.c_str());
 
+            int streakX = 1 + W_SEED+1 + W_ABB+1 + W_NAME+1 + W_REC+1
+                            + W_PCT+1 + W_PPG+1 + W_OPP+1 + W_DIFF;
+
             if (!isSelected) {
                 attroff(COLOR_PAIR(2));
                 if (isWin)       attron(COLOR_PAIR(5) | A_BOLD);
                 else if (isLoss) attron(COLOR_PAIR(6) | A_BOLD);
                 else             attron(COLOR_PAIR(2));
             }
-            printw("%-*s", W_STRK, t.streak.c_str());
+            mvprintw(displayY, streakX, "%-*s", W_STRK, t.streak.c_str());
             attroff(A_BOLD);
             attroff(COLOR_PAIR(2));
             attroff(COLOR_PAIR(3));
             attroff(COLOR_PAIR(5));
             attroff(COLOR_PAIR(6));
-            
+
             attron(COLOR_PAIR(4) | A_BOLD);
-            printw("║ ");
+            mvprintw(displayY, tableWidth - 2, "║ ");
             attroff(COLOR_PAIR(4) | A_BOLD);
             printw("%s", logo[i].c_str());
 
             displayY++;
             seed++;
         }
-        drawBottomBracket(rows, displayY);
+
+        // bottom border — dynamically sized to match table width
+        string bottomFill = "";
+        for (int j = 0; j < tableWidth - 3; j++) bottomFill += "═"; // MARK: EDITED HERE
+        attron(COLOR_PAIR(4) | A_BOLD);
+        mvprintw((rows - 2 > displayY) ? displayY : rows - 2, 1, "%s╝", bottomFill.c_str());
+        attroff(COLOR_PAIR(4) | A_BOLD);
 
         drawStatusBar("Up/Down: navigate  ENTER: team detail  Q: back");
         refresh();
