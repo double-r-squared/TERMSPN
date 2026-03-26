@@ -9,8 +9,6 @@ This project currently supports NBA and NFL standings, more in depth data visual
 #### INSTALLATION
 you are going to need to compile this first, simply:
 
-make → compiles the program.
-
-make run → builds (if needed) and then runs it.
-
-make clean → removes compiled files.
+- make → compiles the program.
+- make run → builds (if needed) and then runs it.
+- make clean → removes compiled files.
