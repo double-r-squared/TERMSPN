@@ -1,5 +1,5 @@
 # TERMSPN
-## Sports stats for the Terminal
+"Sports stats for the Terminal"
 
 This project currently supports NBA and NFL standings, more in depth data visualization coming soon.
 
