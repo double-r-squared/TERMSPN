@@ -9,3 +9,6 @@ $(TARGET): main.cpp espn-api.h ui.h
 
 clean:
 	rm -f $(TARGET)
+
+run: $(TARGET)
+	./$(TARGET)
