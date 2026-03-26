@@ -12,3 +12,6 @@ you are going to need to compile this first, simply:
 - make → compiles the program.
 - make run → builds (if needed) and then runs it.
 - make clean → removes compiled files.
+
+#### SCREENSHOTS
+![project screenshot](./assets/screenshot.png)
