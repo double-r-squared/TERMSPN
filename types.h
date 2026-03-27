@@ -25,6 +25,7 @@ struct Team {
     string conf;
     string lastTen;
     string standing;
+    string venue;
     double winPct = 0.0;
 };
 

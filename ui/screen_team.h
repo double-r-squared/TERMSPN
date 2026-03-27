@@ -8,6 +8,7 @@
 #include <algorithm>
 #include "../types.h"
 #include "../utils/text.h"
+#include "../utils/assetLoader.h"
 #include "ui_core.h"
 using namespace std;
 
@@ -22,6 +23,8 @@ static string lastNameStat(const string& s) {
 
 int screenTeamDetail(const Team& team, const vector<GameResult>& schedule) {
     int n = (int)schedule.size();
+
+    auto logo = loadTeamLogo(team.abbreviation); // load team logo
 
     const int W_DATE = 8;
     const int W_HA   = 3;
@@ -67,14 +70,22 @@ int screenTeamDetail(const Team& team, const vector<GameResult>& schedule) {
         int ry = 2;
         int rLineW = cols - rightX - 1;
 
+
+        // ── Team Logo (under stats)
+        // MARK: HERE 
+        for (string line : logo) {
+            mvprintw(ry++, rightX, "%s", line.c_str());
+        }
+
+        mvhline(ry++, rightX, ACS_HLINE, rLineW);
+
+        // Name (ABV)  "Second in East"
         attron(COLOR_PAIR(1) | A_BOLD);
         mvprintw(ry++, rightX, "%s  (%s)", team.displayName.c_str(), team.abbreviation.c_str());
         attroff(COLOR_PAIR(1) | A_BOLD);
-
         attron(COLOR_PAIR(4));
-        mvprintw(ry++, rightX, "%s", team.standing.c_str());
+        printw("   %s", team.standing.c_str());
         attroff(COLOR_PAIR(4));
-        ry++;
 
         mvhline(ry++, rightX, ACS_HLINE, rLineW);
 
@@ -107,15 +118,21 @@ int screenTeamDetail(const Team& team, const vector<GameResult>& schedule) {
         rrow("OPP PPG", team.oppPpg);
         rrow("Diff",    team.diff);
 
-        bool isWin = !team.streak.empty() && team.streak[0] == 'W';
-        mvprintw(ry, rightX, "%-14s", "Streak");
-        attron((isWin ? COLOR_PAIR(5) : COLOR_PAIR(6)) | A_BOLD);
-        mvprintw(ry, rc2, "%s", team.streak.c_str());
+        attroff(COLOR_PAIR(5) | A_BOLD);
+        attroff(COLOR_PAIR(6) | A_BOLD);
+
+        mvhline(ry++, rightX, ACS_HLINE, rLineW);
+
+        attron(COLOR_PAIR(1) | A_BOLD);
+        mvprintw(ry++, rightX, "Franchise");
+        attroff(COLOR_PAIR(1) | A_BOLD);
+
+        rrow("Venue",     team.venue);
+
         attroff(COLOR_PAIR(5) | A_BOLD);
         attroff(COLOR_PAIR(6) | A_BOLD);
 
         // ── Left pane: schedule header (2 rows + divider) ────────────────────
-        // MARK: HERE 
         attron(COLOR_PAIR(1) | A_BOLD);
         mvprintw(2, 1, "%-*s %-*s %-*s %-*s %-*s %-*s %-*s %-*s",
             W_DATE, "DATE", W_HA, "", W_OPP, "OPP",

@@ -111,7 +111,19 @@ void enrichTeamDetail(Team& team, League league) {
     if (response.empty()) return;
     json root = json::parse(response, nullptr, false);
     if (root.is_discarded()) return;
-    team.standing = root["team"].value("standingSummary", "--");
+
+    const json& t = root["team"];
+
+    // root["team"] is an object — operator[] returns a reference to that sub-object.
+    // .value("key", default) reads a field from it; returns the default if the key
+    // is absent, avoiding an exception on missing data.
+    team.standing = t.value("standingSummary", "--");
+
+    // venue is nested two levels deep: team -> franchise -> venue -> fullName.
+    // We check .contains() at each level before descending so a partial or
+    // missing franchise block doesn't throw.
+    if (t.contains("franchise") && t["franchise"].contains("venue"))
+        team.venue = t["franchise"]["venue"].value("fullName", "--");
 }
 
 // ─── News ─────────────────────────────────────────────────────────────────────

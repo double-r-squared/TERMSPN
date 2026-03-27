@@ -31,3 +31,19 @@ vector<string> loadLeagueLogo(int leagueIndex) {
     file.close();
     return logo;
 }
+
+// Search by Abriviation
+vector<string> loadTeamLogo(string abv) {
+    vector<string> logo;
+    ifstream file(ASSET_DIR + abv + ".txt", ios::binary); // PHX.txt
+    if (!file.is_open()) {
+        cerr << "Error: Could not open the file!" << endl;
+        return logo;
+    }
+    string line;
+    while (getline(file, line)) {
+        logo.push_back(line);
+    }
+    file.close();
+    return logo;
+}
