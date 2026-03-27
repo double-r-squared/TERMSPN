@@ -21,6 +21,8 @@ TERMSPN is a POSIX-compliant terminal application that pulls live standings and 
 
 ---
 
+[news demo](assets/demo_news.png)
+
 ## Dependencies
 
 | Library | Purpose |

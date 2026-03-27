@@ -158,6 +158,35 @@ Each item has a `type` field. Filter by type to extract useful data:
 
 ---
 
+## Filtering — Video-Only Articles
+
+The Site API mixes text articles and video highlight clips in the same response. Video articles have no readable content and should be excluded from any news list view.
+
+### Detection (reliable)
+
+Check `images[]` — video-only articles contain images but **none with `type: "header"`**. They only carry `type: "Media"` entries (video thumbnail frames).
+
+```python
+has_header = any(img["type"] == "header" for img in article.get("images", []))
+if images present and not has_header → video-only, skip
+```
+
+### Why not match on headline strings?
+
+String matching (e.g. `": Game Highlights"`, `"Watch:"`) is brittle — ESPN changes phrasing and the same pattern can appear in legitimate text articles. The `images[].type` check is structural and generalizes to all video formats (game highlights, film room, press conferences, etc.) without maintaining a keyword list.
+
+### Limit
+
+The Site API news endpoint defaults to a low article count. Use `?limit=50` to increase the pool before filtering:
+
+```bash
+GET https://site.api.espn.com/apis/site/v2/sports/basketball/nba/news?limit=50
+```
+
+Even with `limit=50`, video articles can consume a significant portion of results. Always request more than you need to ensure a usable list after filtering.
+
+---
+
 ## Story HTML Notes
 
 The `story` field (Now API / content API) is HTML with escaped entities (`\u003Cp\u003E` = `<p>`).

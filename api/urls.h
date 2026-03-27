@@ -26,8 +26,8 @@ string buildTeamUrl(League league, const string& teamId) {
 
 string buildNewsUrl(League league) {
     switch (league) {
-        case NFL: return SITE_API + "/football/nfl/news";
-        case NBA: return SITE_API + "/basketball/nba/news";
+        case NFL: return SITE_API + "/football/nfl/news?limit=50";
+        case NBA: return SITE_API + "/basketball/nba/news?limit=50";
         default:  return "";
     }
 }

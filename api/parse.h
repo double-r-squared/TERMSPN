@@ -110,6 +110,16 @@ vector<NewsArticle> parseNewsList(const string& response) {
     if (root.is_discarded() || !root.contains("articles")) return articles;
 
     for (auto& a : root["articles"]) {
+        // Skip video-only articles: they have images but none of type "header"
+        // (only "Media" thumbnails). Real text articles always have a "header" image.
+        const auto& imgs = a.value("images", json::array());
+        if (!imgs.empty()) {
+            bool hasHeader = false;
+            for (auto& img : imgs)
+                if (img.value("type", "") == "header") { hasHeader = true; break; }
+            if (!hasHeader) continue;
+        }
+
         NewsArticle article;
         article.id          = a.value("id", 0);
         article.headline    = a.value("headline", "");

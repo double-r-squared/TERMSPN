@@ -2,7 +2,7 @@ CXX      = g++
 CXXFLAGS = -std=c++17 -Wall -I.
 LIBS     = -lcurl -lncurses
 
-TARGET = espn
+TARGET = espn.o
 
 HEADERS = \
 	types.h \
