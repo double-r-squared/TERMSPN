@@ -28,6 +28,23 @@ struct Team {
     double winPct = 0.0;
 };
 
+struct GameResult {
+    string date;         // ISO 8601 UTC
+    string opponent;     // abbreviation e.g. "SAC"
+    string oppName;      // full name
+    string homeAway;     // "home" or "away"
+    string state;        // "pre" / "in" / "post"
+    string statusText;   // "Final" / "7:00 PM ET" / "Q3 4:32"
+    bool   completed  = false;
+    string result;       // "W" or "L" — completed games only
+    string ourScore;     // "120"
+    string oppScore;     // "116"
+    string record;       // team record after this game e.g. "1-0"
+    string highPts;      // "D. Booker (31)"
+    string highReb;      // "M. Williams (11)"
+    string highAst;      // "G. Allen (7)"
+};
+
 struct NewsArticle {
     int    id            = 0;
     string headline;

@@ -15,6 +15,19 @@ using namespace std;
 
 // ─── Parse helpers ────────────────────────────────────────────────────────────
 
+// Returns "D. Booker (31)" for a given stat category name within a leaders array.
+static string leaderStr(const json& leaders, const string& name) {
+    for (const auto& cat : leaders) {
+        if (cat.value("name", "") != name) continue;
+        const auto& top = cat["leaders"];
+        if (top.empty()) return "--";
+        const auto& l = top[0];
+        string n = l["athlete"].value("shortName", l["athlete"].value("displayName", "--"));
+        return n + " (" + l.value("displayValue", "--") + ")";
+    }
+    return "--";
+}
+
 static string findStat(const json& stats, const string& key) {
     for (auto& s : stats)
         if (s.value("type", "") == key)
@@ -165,4 +178,65 @@ void enrichNewsStory(NewsArticle& article) {
         article.story = stripHtml(a.value("story", ""));
     else
         article.story = article.description;
+}
+
+// ─── Schedule ─────────────────────────────────────────────────────────────────
+
+vector<GameResult> parseSchedule(const string& response) {
+    vector<GameResult> games;
+    if (response.empty()) return games;
+    json root = json::parse(response, nullptr, false);
+    if (root.is_discarded() || !root.contains("events")) return games;
+
+    string teamId = root["team"].value("id", "");
+
+    for (const auto& event : root["events"]) {
+        if (!event.contains("competitions") || event["competitions"].empty()) continue;
+        const auto& comp = event["competitions"][0];
+
+        GameResult g;
+        g.date = event.value("date", "");
+
+        if (comp.contains("status") && comp["status"].contains("type")) {
+            const auto& st = comp["status"]["type"];
+            g.state      = st.value("state", "pre");
+            g.completed  = st.value("completed", false);
+            g.statusText = st.value("shortDetail", "");
+        }
+
+        if (!comp.contains("competitors")) continue;
+
+        // Separate our team from the opponent
+        json ourComp, oppComp;
+        bool foundOur = false, foundOpp = false;
+        for (const auto& c : comp["competitors"]) {
+            if (c.value("id", "") == teamId) { ourComp = c; foundOur = true; }
+            else                              { oppComp = c; foundOpp = true; }
+        }
+        if (!foundOur || !foundOpp) continue;
+
+        g.homeAway = ourComp.value("homeAway", "");
+        g.opponent = oppComp["team"].value("abbreviation", "");
+        g.oppName  = oppComp["team"].value("displayName", "");
+
+        if (g.completed) {
+            g.result = ourComp.value("winner", false) ? "W" : "L";
+            if (ourComp.contains("score"))
+                g.ourScore = ourComp["score"].value("displayValue", "");
+            if (oppComp.contains("score"))
+                g.oppScore = oppComp["score"].value("displayValue", "");
+
+            for (const auto& r : ourComp.value("record", json::array()))
+                if (r.value("type", "") == "total") { g.record = r.value("displayValue", "--"); break; }
+
+            if (ourComp.contains("leaders")) {
+                g.highPts = leaderStr(ourComp["leaders"], "points");
+                g.highReb = leaderStr(ourComp["leaders"], "rebounds");
+                g.highAst = leaderStr(ourComp["leaders"], "assists");
+            }
+        }
+
+        games.push_back(g);
+    }
+    return games;
 }

@@ -11,14 +11,18 @@
 #include "ui/screen_news_detail.h"
 
 // ─── Session cache ────────────────────────────────────────────────────────────
-// In-memory only. Both caches are discarded automatically on exit.
-// standings: keyed by League, populated on first league visit.
-// news:      keyed by League, populated alongside standings.
-//            Individual article story bodies are lazy-fetched and stored in the
-//            local `articles` vector; the cache holds the un-enriched list.
+// All caches are in-memory only — discarded automatically on exit, no disk I/O.
+//
+// standingsCache  keyed by League       — populated on league select
+// newsCache       keyed by League       — populated alongside standings
+// scheduleCache   keyed by team ID str  — populated lazily on first team visit
+//
+// Individual article story bodies are lazy-fetched into the local `articles`
+// vector; the newsCache holds the un-enriched list.
 
 static map<League, vector<Team>>        standingsCache;
 static map<League, vector<NewsArticle>> newsCache;
+static map<string, vector<GameResult>>  scheduleCache;
 
 static vector<Team> getStandings(League league) {
     if (standingsCache.count(league)) return standingsCache[league];
@@ -34,8 +38,16 @@ static vector<NewsArticle> getNews(League league) {
     return articles;
 }
 
-static void evictStandings(League league) { standingsCache.erase(league); }
-static void evictNews(League league)      { newsCache.erase(league); }
+static vector<GameResult> getSchedule(League league, const string& teamId) {
+    if (scheduleCache.count(teamId)) return scheduleCache[teamId];
+    vector<GameResult> games = parseSchedule(fetchUrl(buildTeamScheduleURL(league, teamId)));
+    if (!games.empty()) scheduleCache[teamId] = games;
+    return games;
+}
+
+static void evictStandings(League league)        { standingsCache.erase(league); }
+static void evictNews(League league)             { newsCache.erase(league); }
+static void evictSchedule(const string& teamId)  { scheduleCache.erase(teamId); }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
@@ -48,6 +60,7 @@ int main() {
     League selectedLeague  = NBA;
     vector<Team>        teams;
     vector<NewsArticle> articles;
+    vector<GameResult>  schedule;
     int selectedTeam    = 0;
     int selectedArticle = 0;
     bool running = true;
@@ -83,15 +96,28 @@ int main() {
                     break;
                 }
                 if (result == -3) { state = NEWS_LIST; break; }
+
                 selectedTeam = result;
                 if (teams[selectedTeam].standing.empty())
                     enrichTeamDetail(teams[selectedTeam], selectedLeague);
+
+                drawTitleBar("Fetching schedule...");
+                refresh();
+                schedule = getSchedule(selectedLeague, teams[selectedTeam].id);
+
                 state = TEAM_DETAIL;
                 break;
             }
 
             case TEAM_DETAIL: {
-                screenTeamDetail(teams[selectedTeam]);
+                int result = screenTeamDetail(teams[selectedTeam], schedule);
+                if (result == -2) {
+                    evictSchedule(teams[selectedTeam].id);
+                    drawTitleBar("Refreshing schedule...");
+                    refresh();
+                    schedule = getSchedule(selectedLeague, teams[selectedTeam].id);
+                    break;  // re-enter TEAM_DETAIL with fresh data
+                }
                 state = STANDINGS;
                 break;
             }
@@ -107,7 +133,6 @@ int main() {
                     break;
                 }
                 selectedArticle = result;
-                // Lazy-fetch story body; stored in local articles vector for this session
                 if (articles[selectedArticle].story.empty())
                     enrichNewsStory(articles[selectedArticle]);
                 state = NEWS_DETAIL;

@@ -24,6 +24,17 @@ string buildTeamUrl(League league, const string& teamId) {
     }
 }
 
+string buildTeamScheduleURL(League league, const string& teamId) {
+    switch (league) {
+        case NFL: return SITE_API + "/football/nfl/teams/" + teamId + "/schedule";
+        case NBA: return SITE_API + "/basketball/nba/teams/" + teamId + "/schedule";
+        default:  return "";
+    }
+}
+
+
+// TODO: Make Limit Configureable in Settings
+// TODO: (Stretch) Make Settings Page
 string buildNewsUrl(League league) {
     switch (league) {
         case NFL: return SITE_API + "/football/nfl/news?limit=50";
