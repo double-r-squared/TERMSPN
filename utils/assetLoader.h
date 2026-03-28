@@ -33,9 +33,17 @@ vector<string> loadLeagueLogo(int leagueIndex) {
 }
 
 // Search by Abriviation
-vector<string> loadTeamLogo(string abv) {
+vector<string> loadTeamLogo(int leagueIndex, string abv) {
+    string logoPath = "";
+
+    switch (leagueIndex) {
+        case 0: logoPath  = ASSET_DIR + "NBA/"; break;
+        case 1: logoPath  = ASSET_DIR + "NFL/"; break;
+        default: logoPath = "";
+    }
+
     vector<string> logo;
-    ifstream file(ASSET_DIR + abv + ".txt", ios::binary); // PHX.txt
+    ifstream file(logoPath + abv + ".txt", ios::binary); // PHX.txt
     if (!file.is_open()) {
         cerr << "Error: Could not open the file!" << endl;
         return logo;

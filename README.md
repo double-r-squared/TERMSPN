@@ -4,7 +4,7 @@
 
 TERMSPN is a POSIX-compliant terminal application that pulls live standings and team data directly from ESPN's public API. Navigate leagues, browse standings, and drill into team details without ever leaving your shell.
 
-![project screenshot](./assets/screenshot.png)
+![project screenshot](./screenshots/demo.png)
 
 ---
 
@@ -21,8 +21,13 @@ TERMSPN is a POSIX-compliant terminal application that pulls live standings and 
 - **Minimal dependencies** — ncurses and libcurl, nothing else
 
 ---
+### Demo (Standings)
+![news demo](./screenshot/demo_news.png)
 
-![news demo](./assets/demo_news.png)
+---
+### Demo (NEWS)
+![news demo](./screenshot/demo_news.png)
+
 
 ## Dependencies
 

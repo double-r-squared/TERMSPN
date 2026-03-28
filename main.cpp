@@ -110,7 +110,7 @@ int main() {
             }
 
             case TEAM_DETAIL: {
-                int result = screenTeamDetail(teams[selectedTeam], schedule);
+                int result = screenTeamDetail(teams[selectedTeam], schedule, selectedLeague);
                 if (result == -2) {
                     evictSchedule(teams[selectedTeam].id);
                     drawTitleBar("Refreshing schedule...");

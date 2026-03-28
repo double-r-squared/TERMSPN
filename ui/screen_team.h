@@ -21,10 +21,10 @@ static string lastNameStat(const string& s) {
     return (sp != string::npos ? name.substr(sp + 1) : name) + s.substr(paren);
 }
 
-int screenTeamDetail(const Team& team, const vector<GameResult>& schedule) {
+int screenTeamDetail(const Team& team, const vector<GameResult>& schedule, League league) {
     int n = (int)schedule.size();
 
-    auto logo = loadTeamLogo(team.abbreviation); // load team logo
+    auto logo = loadTeamLogo(league, team.abbreviation); // load team logo
 
     const int W_DATE = 8;
     const int W_HA   = 3;
@@ -70,9 +70,7 @@ int screenTeamDetail(const Team& team, const vector<GameResult>& schedule) {
         int ry = 2;
         int rLineW = cols - rightX - 1;
 
-
-        // ── Team Logo (under stats)
-        // MARK: HERE 
+        // Team Logo
         for (string line : logo) {
             mvprintw(ry++, rightX, "%s", line.c_str());
         }
